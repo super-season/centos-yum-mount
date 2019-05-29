@@ -1,0 +1,55 @@
+#!/bin/bash
+. /etc/clone.conf 
+
+if [ "$name" == "" ];then
+ BASEVM=node_tedu
+else
+ BASEVM=node_base
+ echo -e "The basic template you use \e[32;1m[OK]\e[0m"
+fi
+
+IMG_DIR=/var/lib/libvirt/images
+
+read -p "Enter VM number: "   VMNUM
+
+if [ -z $VMNUM  ];then
+echo    Please enter parameters
+exit
+fi
+
+if [ -z "${VMNUM}" ]; then
+    echo "You must input a number."
+    exit 65
+elif [ $(echo ${VMNUM}*1 | bc) = 0 ]; then
+    echo "You must input a number."
+    exit 66
+elif [ ${VMNUM} -lt 1 -o ${VMNUM} -gt 99 ]; then
+    echo "Input out of range"
+    exit 67
+fi
+if [ $VMNUM -le 9 ];then
+VMNUM=0$VMNUM
+fi
+
+NEWVM=tedu_node${VMNUM}
+
+if [ -e $IMG_DIR/${NEWVM}.img ]; then
+    echo "File exists."
+    exit 68
+fi
+
+echo -en "Creating Virtual Machine disk image......\t"
+qemu-img create -f qcow2 -b $IMG_DIR/.${BASEVM}.qcow2 $IMG_DIR/${NEWVM}.img 20G &> /dev/null
+echo -e "\e[32;1m[OK]\e[0m"
+if [ "$name" == "" ];then
+cat /var/lib/libvirt/images/.node_tedu.xml > /tmp/myvm.xml
+else
+cat /var/lib/libvirt/images/.node_base.xml > /tmp/myvm.xml
+fi
+sed -i "/<name>${BASEVM}/s/${BASEVM}/${NEWVM}/" /tmp/myvm.xml
+sed -i "/${BASEVM}\.img/s/${BASEVM}/${NEWVM}/" /tmp/myvm.xml
+
+echo -en "Defining new virtual machine......\t\t"
+sudo virsh define /tmp/myvm.xml &> /dev/null
+rm -rf /tmp/myvm.xml
+echo -e "\e[32;1m[OK]\e[0m"
