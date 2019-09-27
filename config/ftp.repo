@@ -1,0 +1,5 @@
+[gitlab]
+name=gitlab
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el\$releasever/
+enabled=1
+gpgcheck=0

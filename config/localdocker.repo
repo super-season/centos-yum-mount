@@ -1,0 +1,5 @@
+[docker]
+name=docker
+baseurl=http://mirrors.myhuaweicloud.com/centos/$releasever/extras/x86_64/
+enabled=1
+gpgcheck=0
