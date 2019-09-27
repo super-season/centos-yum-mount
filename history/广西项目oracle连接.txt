@@ -1,0 +1,20 @@
+需要连接的数据库IP：10.182.17.122
+数据库名：数据仓库数据库（新）（库名：DWNDB）
+
+账号：zt_gzwc
+密码：Abc_123456
+insert into hwweb.masa_sms_data_weice
+(
+    id             --生成唯一值
+   ,serv_number  --接收人手机号码
+   ,sms_content  -- 短信内容
+   ,statis_date  -- 监控时间
+)
+values(
+  hwweb.masa_sms_data_seq.nextval
+,'182********'
+,'短信内容'
+,sysdate
+)
+;
+commit;
