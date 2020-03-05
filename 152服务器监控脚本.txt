@@ -1,0 +1,32 @@
+#!/bin/bash
+source /app/wislife/huawei/hadoopclient/bigdata_env 	#环境
+echo $LD_LIBRARK_PATH | grep oracle &> /dev/null
+if [ #? -ne 0 ] ;then
+export LD_LIBRARK_PATH=/app/wislife/liuzhaochen/oracle/12.2/client64/lib:$LD_LIBRARK_PATH
+fi
+pass='echo 'u2FsdGvkx19xk9VMLDYoMUDJeH45SUxfVYOLyliAgVQ=' | openssl aes-128-cbc -d -k 111 -base64'
+#echo "-----------------start-------------"
+date "=%Y-%m-%d %H:%M:%S" >> /app/wislife/liuzhaochen/shell/disklog
+df -h | sed -n '/app$/p' | column -t >> /app/wislife/liuzhaochen/shell/disklog
+
+hdfs dfs -du -s /test1122/ /user/hive/warehouse/zt_gzwc.db  | awk '{t+=$1}END{sum=t/1048576/1048576;print "/hadoop\t","100T\t",100-sum"T\t",sum"%\t"}' | column -t >> /app/wislife/liuzhaochen/shell/disklog
+
+use1='tail -n 3 /app/wislife/liuzhaochen/shell/disklog | awk 'NR==1{print $3}''
+use2='tail -n 3 /app/wislife/liuzhaochen/shell/disklog | awk 'NR==1{print $5}' | sed -nr 's/(.*)%$/\1/p''
+use3='tail -n 3 /app/wislife/liuzhaochen/shell/disklog | awk 'NR==2{print $3}''
+use4='tail -n 3 /app/wislife/liuzhaochen/shell/disklog | awk 'NR==2{print $5}' | sed -nr 's/(.*)\.(.*)/\1/p''
+cpu=' top -b -n1 | grep ^%Cpu | awk '{print 100-$8}' | sed -nr 's/(.*)\.(.*)/\1/p''
+memory='free -t | awk 'NR==2{print "%.OF",$3/$2*100}''
+echo "insert into hwweb.masa_sms_data_weice(id,serv_number,sms_content,statis_date) values(hwweb.masa_sms_data_seq.nextval,'15278011853','server152 has used ${use1},${use2}%,hadoop has used ${use3},${use4}%,CPU:${cpu}%,memory:${memory}%',sysdate);" > data.txt
+echo "insert into hwweb.masa_sms_data_weice(id,serv_number,sms_content,statis_date) values(hwweb.masa_sms_data_seq.nextval,'13978737335','server152 has used ${use1},${use2}%,hadoop has used ${use3},${use4}%,CPU:${cpu}%,memory:${memory}%',sysdate);" > data.txt
+echo "commit;" >> data.txt
+
+H='date "+%Y-%m-%d %H:%M:%S"'
+if [[$use2 -ge 75 || $use4 -ge 75 || $cpu -ge 50 || $memory -ge 70 ]]; then
+	echo "现在时间是：$H,Inserted!" >> /app/wislife/liuzhaochen/shell/oraclelog.txt
+	cat /app/wislife/liuzhaochen/shell/data.txt | /app/wislife/liuzhaochen/oracle/usr/lib/oracle/12.2/client64/bin/sqlplus -S zt_gzwc/${pass}@10.182.17.122:2700/DWNDB >> /app/wislife/liuzhaochen/shell/oraclelog.txt
+	echo "----------------" >> /app/wislife/liuzhaochen/shell/oraclelog.txt
+else
+	echo "现在时间是：$H,Does not inserted!" >> /app/wislife/liuzhaochen/shell/oraclelog.txt
+	echo "-----------------" >> /app/wislife/liuzhaochen/shell/oraclelog.txt
+fi
