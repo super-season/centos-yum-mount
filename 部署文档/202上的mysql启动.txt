@@ -1,0 +1,10 @@
+2019.7.3
+在202上有2个版本的mysql：
+202重启后会自动启动系统中5.1版本的mysql，需要关掉它：
+service mysqld stop
+5.6版本的mysql在/usr/local/mysql目录下。
+广西试错等数据库都在这个mysql里。
+需要启动这个版本：
+/usr/local/mysql/bin/mysqld --defaults-file=/usr/local/mysql/my.cnf --user=root &
+
+登录数据库：/usr/local/mysql/bin/mysql -uroot -p123123

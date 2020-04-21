@@ -1,0 +1,46 @@
+/*
+参数说明：
+
+-d 后台进程运行
+hostname RabbitMQ主机名称
+name 容器名称
+-p port:port 本地端口:容器端口
+-p 15672:15672 http访问端口
+-p 5672:5672 amqp访问端口
+*/
+
+docker run -d --hostname mq1 --name myrabbit1 -e RABBITMQ_ERLANG_COOKIE='rabbitcookie' -p 15672:15672 -p 5672:5672 rabbitmq:3.7-management
+
+docker run -d --hostname mq2 --name myrabbit2 --link myrabbit1:mq1 -e RABBITMQ_ERLANG_COOKIE='rabbitcookie' -p 5673:5672 rabbitmq:3.7-management
+
+docker run -d --hostname mq3 --name myrabbit3 --link myrabbit1:mq1 --link myrabbit2:mq2 -e RABBITMQ_ERLANG_COOKIE='rabbitcookie' -p 5674:5672 rabbitmq:3.7-management
+
+# -e 参数负责保证每个机器（容器）的 .erlang.cookie 相同（即通信密钥相同）
+
+docker exec -it myrabbit1 bash
+rabbitmqctl stop_app
+rabbitmqctl reset
+# rabbitmqctl change_cluster_node_type ram
+rabbitmqctl start_app
+exit
+
+docker exec -it myrabbit2 bash
+rabbitmqctl stop_app
+rabbitmqctl reset
+rabbitmqctl join_cluster --ram rabbit@mq1
+rabbitmqctl start_app
+exit
+
+
+docker exec -it myrabbit3 bash
+rabbitmqctl stop_app
+rabbitmqctl reset
+rabbitmqctl join_cluster --ram rabbit@mq1
+rabbitmqctl start_app
+exit
+
+# 参数“--ram”表示设置为内存节点，忽略次参数默认为磁盘节点。
+
+# 如果不是以容器赋值的方式给到 .erlang.cookie ， 则需要将 .erlang.cookie 复制到其他仆从机器的对应位置替换（在 docker 1.7 上会有bug）
+
+# 查找容器的共享文件夹地址： docker inspect -f '{{.Id}}' myrabbit2

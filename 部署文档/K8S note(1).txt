@@ -1,0 +1,468 @@
+2020.4.1号
+环境配置：
+1台kube-maste
+3台node
+1台registry
+
+NSD1911 k8s DAY01
+
+---K8S是容器集群管理系统，是一个开源的平台，可以实现容器集群的自动化部署、自动化
+缩容、维护等功能。
+
+K8S适用场景
+-有大量跨主机的容器需要管理
+-快速部署应用
+-快速扩展应用
+-节省资源、优化资源的使用
+
+...核心角色
+-master （管理节点）
+       用户通过---API访问master节点（运行若干个程序，主要是对集群的管理）---管理节点下有若干个Node节点（都是真实机器）---每个Node节点
+上运行docker   比如我想创建3个容器，只要告诉管理节点，管理节点会自动选择合适的地方帮你创建容器。
+这时候避免了我们人为的寻找不同的机器创建不同的容器的重复工作过程。
+-node    （计算节点）安装配置docker
+-image  （镜像仓库）
+
+master节点服务
+-API server    整个系统对外的借口，供客户端和其它组件使用
+-scheduler     负责对集群内部的资源进行调度，相当于“调度室”
+-controller     负责管理控制器，相当于“大总管”
+-etcd              是一个键值存储仓库，存储集群的状态。
+
+node节点服务
+-docker 容器管理
+-kubelet         主要负责监视到指派到它的pod,包括创建、修改、删除
+-kube-proxy   主要负责为pod对象提供代理；实现service的通信和负载均衡。
+
+Pod是什么
+-是K8S调度的基本单元
+-一个Pod包含1个或多个容器
+-这些容器使用相同的网络命名空间和端口号
+-pod作为一个独立的部署单位，支持横向扩展和复制
+  可以把pod理解为一个容器组，这一组容器里 至少包含1台，至多n台。
+
+Pod的作用
+-由若干容器组成的一个容器组
+-同个组内的容器共享一个存储卷
+-每个Pod被分配到节点上运行直至运行结束或被删除
+-同个Pod下的容器使用相同的网络命名空间、IP地址和端口区间，相互之间能通过localhost来发现和通信
+
+service是什么？
+-一种可以访问pod服务的策略方法，通常称为微服务
+-由于pod中的服务经常会变化，给我们访问造成了不便，为了解决这一问题
+，service提供了基于VIP/负载均衡的访问方式
+-在K8S集群中，每个node运行了一个kube-proxy进程，kube-proxy负责为service实现了一种VIP的形式
+
+标签和选择器
+为了建立service和pod之间的关联，k8s先给每个pod打上了一个标签，然后再给相应的service定义标签选择器
+例如
+metadata:
+      labels:   #声明标签
+         app:nginx  #定义标签的名字
+selector:          #声明标签选择器 
+    app:nginx    #为服务的后端选择标签     
+
+架构图
+deploy 定义了RS
+  | 
+RS        底下运行了多个pod
+  |
+pod
+
+-deployment为Pod和RS提供描述性的更新方式
+-RS是RC的升级版
+-RC：管理pod，在rc中定义了如何启动pod,如何运行，启动几副本等功能，如果我们创建文件，
+在其中使用yaml语法格式描述了上面的信息，这个文件就是我们的资源对象文件。
+
+
+etcd:一个高可用的分布式键值数据库，基于Go语言实现。
+
+etcdctl 管理命令
+.etcdctl是etcd命令行客户端
+.语法:etctctl 子命令 参数 键值
+set       设置键值对
+get       读取键值对
+update 更改键值对
+mk        创建新的键值对，rm删除键值对
+mkdir   创建目录，rmdir删除目录
+ls           显示目录和键值对
+
+flannel网络（装包-配置-起服务-生成随机的IP ifconfig flannel.1）
+.flannel是什么
+-Flannel实质上是一种“覆盖网络”，也就是将TCP数据包装在另一种网络包里面进行路由转发
+和通信。
+.是哟个flannel目标
+###实现不同主机内的容器互联互通
+
+######
+K8S生产环境所有机器都要卸载防火墙
+生产环境防火墙在哪里呢？防火墙在跳板机上（也就是负载均衡上），绝不会在节点上。
+
+
+kube-master是什么？
+.Master组件
+-提供集群的控制
+-对集群进行全局决策
+-检测和响应集群事件
+-Master主要由api-server,kube-scheduler,controller-manager和etcd服务组成
+
+###启动服务
+[root@kube-master ~]# systemctl enable kube-apiserver.service kube-controller-manager.service kube-scheduler.service
+[root@kube-master ~]# systemctl start kube-apiserver.service kube-controller-manager.service kube-scheduler.service 
+
+###验证服务
+[root@kube-master ~]# kubectl get cs
+NAME                 STATUS    MESSAGE             ERROR
+scheduler            Healthy   ok                  
+controller-manager   Healthy   ok                  
+etcd-0               Healthy   {"health":"true"}  
+
+kube-node是什么？
+.kube-node 计算节点
+-真实运行容器的节点（最终的容器都是在我们的kube-node上运行的）
+-计算节点，该组件在水平扩展在多个节点运行
+-维护运行的Pod并提供kubernetes运行环境
+-kube-node由kubelet、kube-proxy和docker组成
+
+2020.4.2号
+NSD1911 k8s DAY02
+dashboard是基于网页的K8S用户界面，你可以使用dashboard将容器应用部署到K8S集群中，也可以对容器应用排错，
+还能管理集群资源。可以获取在集群内的应用的概览消息，也可以创建或者修改K8S资源。
+
+同时展示了K8S集群中的资源状态信息和所有的报错信息。
+
+
+######Kubectl命令######
+
+kubectl是用于控制K8S集群的命令行工具
+.语法格式
+-kubectl [command] [type] [name] [flags]
+ command:子命令，如create,get,describle,delete
+ type:  资源类型，可以表示为单数，复数或缩写形式
+ name:资源的名称，如果省略，则表示所有资源信息
+ flags:指定可选标志，或附加的参数 
+
+.kubectl get         查询资源
+get node             查询节点状态
+get pod               查询pod容器资源
+get deployment  查看资源名称
+
+[root@kube-master ~]# kubectl -n kube-system get deployment      (系统管理空间)
+NAME                           DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-dashboard   1                1               1                      1                    3h
+
+[root@kube-master ~]# kubectl -n kube-system get pod    （显示容器的信息是否正常）
+NAME                                                               READY     STATUS    RESTARTS   AGE
+kubernetes-dashboard-7f7c59b6b5-xqqph   1/1           Running    0                  3h
+
+.kubectl describle
+.查看资源详细信息（经常用于排错）
+    kubectl describle 资源类型  资源名称
+
+.kubectl run  创建容器
+-语法格式
+  kubectl run 资源(deploy)名称 -i -t --image=镜像名称:标签  i:交互式 t:终端
+
+[root@kube-master ~]# kubectl  run test1 -i -t --image=192.168.1.110:5000/myos:latest             ###此容器不是在master上创建的，随机在某一台node上创建的
+If you don't see a command prompt, try pressing enter.                            
+[root@test1-78f5d65b8b-mnszv /]#       
+
+[root@kube-master ~]# kubectl -n kube-system get pod -o wide 
+NAME                                                             READY   STATUS    RESTARTS   AGE       IP            NODE
+kubernetes-dashboard-7f7c59b6b5-xqqph   1/1       Running   0                  19h       10.254.61.2   kube-node3
+         
+kubectl  exec
+.启动新命令，进入一个正在运行的容器
+.语法格式:
+  kubectl exec -it 容器id 执行命令
+[root@kube-master ~]# kubectl   exec -it test2-75bddc9748-vsj58 /bin/bash
+[root@test2-75bddc9748-vsj58 /]#
+
+kubectl console管理
+.查看console终端的输出信息
+-logs和attach命令
+[root@kube-master ~]# kubectl attach test2-75bddc9748-vsj58 -c test2  -i -t
+If you don't see a command prompt, try pressing enter.
+[root@test2-75bddc9748-vsj58 /]# echo hello world
+hello world
+[root@test2-75bddc9748-vsj58 /]# echo hello world
+hello world
+[root@test2-75bddc9748-vsj58 /]# echo hello world
+hello world
+
+再按ctrl +p 和ctrl+q退出
+[root@kube-master ~]# kubectl logs  test2-75bddc9748-vsj58   （通过这个命令可以看到刚才容器里面操作的命令）
+[root@test2-75bddc9748-vsj58 /]# echo hello world
+hello world
+[root@test2-75bddc9748-vsj58 /]# echo hello world
+hello world
+[root@test2-75bddc9748-vsj58 /]# echo hello world
+hello world
+
+kubectl delete
+.删除资源
+ kubectl delete 资源类型 资源名称
+[root@kube-master ~]# kubectl delete pod test2-75bddc9748-vsj58   ###删除pod
+pod "test2-75bddc9748-vsj58" deleted
+
+[root@kube-master ~]# kubectl get pod -o wide                                   ###删除后会自动重建
+
+[root@kube-master ~]# kubectl delete deployment test2                    ###删除资源，容器彻底消失
+deployment.extensions "test2" deleted
+[root@kube-master ~]# kubectl get pod 
+No resources found.
+
+###服务管理 用户发指定给Master ---我要4个apache服务---master会去自动找节点资源---
+会去统治那些机器（比如在不同的机器里面去启动副本）
+.使用run命令启动服务
+-启动2副本的web服务（多副本会自动分配到不同机器上）
+  kubectl run -r 副本数量 --image=镜像名称:标签
+
+[root@kube-master ~]# kubectl run -r 2 apache --image=192.168.1.110:5000/myos:httpd
+deployment.apps "apache" created
+[root@kube-master ~]# kubectl get pod -o wide    （如果删除1个pod，系统会自动创建1个，保证副本的数量总数）
+NAME                      READY     STATUS    RESTARTS   AGE       IP            NODE
+apache-5467ff7449-ppfgb   1/1       Running   0          12s       10.254.93.2   kube-node2
+apache-5467ff7449-z88xs   1/1       Running   0          12s       10.254.66.2   kube-node1
+
+###service （可以理解为一个负载均衡）
+.会变化的Pod给我们访问带来了非常多的不便（删除Pod系统自动创建pod，IP地址会变呀）
+-service 就是解决这一个问题的方法
+-service 会创建一个cluster IP，这个地址对应资源地址，不管pod如何变化，service总能找到
+对应的Pod，且cluster ip 保持不变，如果有对应多个容器，service会自动在多个容器之间实现负载均衡
+-service 通过port nodeport targetport将访问的请求最终映射到pod的容器内部服务上。
+
+内部资源访问
+.cluster-ip是集群分配的服务IP，仅供集群内部访问
+.语法格式：
+ kubectl expose 资源类型  资源名称 --port=服务端口 --target-port=容器端口 --name=service的名字
+[root@kube-master ~]# kubectl get  deployment apache
+NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+apache    2         2         2            2           39m
+
+[root@kube-master ~]# kubectl   expose deployment apache --port=80 --target-port=80 --name=my-httpd
+service "my-httpd" exposed
+
+[root@kube-master ~]# kubectl get  serviceK
+NAME           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.254.0.1          <none>          443/TCP   4d
+my-httpd      ClusterIP   10.254.163.225   <none>         80/TCP     1m
+
+[root@kube-master ~]# kubectl run test -i -t --image=192.168.1.110:5000/myos:latest
+If you don't see a command prompt, try pressing enter.
+
+[root@test-c487dd5d8-wrbst /]# curl 10.254.163.225    （再去访问集群IP即可）
+
+##另外开一个终端，分别进入到2个容器内，改首页index.html ----》访问集群IP测试轮询效果
+[root@kube-master ~]# kubectl get pod
+NAME                      READY     STATUS    RESTARTS   AGE
+apache-5467ff7449-mjr7c   1/1       Running   0          31m
+apache-5467ff7449-ppfgb   1/1       Running   0          49m
+test-c487dd5d8-wrbst      1/1       Running   0          2m
+
+[root@kube-master ~]# kubectl exec -it apache-5467ff7449-mjr7c /bin/bash
+[root@apache-5467ff7449-mjr7c html]# echo "hello world" >>index.html
+[root@apache-5467ff7449-mjr7c html]# exit
+exit
+
+[root@kube-master ~]# kubectl exec -it apache-5467ff7449-ppfgb /bin/bash
+[root@apache-5467ff7449-ppfgb html]# echo "hello nsd1911" >>index.html
+[root@apache-5467ff7449-ppfgb html]# exit
+exit
+
+访问集群IP测试轮询效果
+[root@test-c487dd5d8-wrbst /]# curl 10.254.163.225
+hello nsd1911
+[root@test-c487dd5d8-wrbst /]# curl 10.254.163.225
+hello world
+[root@test-c487dd5d8-wrbst /]# curl 10.254.163.225
+hello nsd1911
+
+
+###服务自动发现
+######kube-dns是什么？
+
+---K8s提供了service的概念可以通过VIP访问Pod提供的服务，但是在使用的时候怎么知道
+某个应用的VIP？
+
+---比如我们有两个应用，一个web，一个是db,通过service暴露出的端口提供服务，web需要
+连接到db应用,我们只知道应用的名称并不知道它的VIP地址，这时候最好的方式就是通过DNS
+来查询了，kube-dns就是为了解决这一问题而出现的，在K8S中DNS是作为插件来安装的。
+
+操作：
+1、上传kube-dns 3镜像至私有仓库
+2、在kube-maste上修改dns.yaml配置文件
+3、给所有Node节点（3台node）配置DNS（/etc/kubernetes/kubelet）第14行后面加配置信息即可
+ 14 KUBELET_ARGS="--cgroup-driver=systemd --fail-swap-on=false --kubeconfig=/etc/kubernetes/kubelet.kubeconfig --pod-infra-container-image=pod-infrastructure:latest --cluster-dns=10.254.254.253 --cluster-domain=tedu.local."[root@kube-node1 kubernetes]# systemctl restart kubelet.service 
+4、重启服务[root@kube-node1 kubernetes]# systemctl restart kubelet.service 
+5、master主机上操作
+[root@kube-master ~]# kubectl  create -f   kube-dns.yaml 
+service "kube-dns" created
+serviceaccount "kube-dns" created
+configmap "kube-dns" created
+deployment.extensions "kube-dns" created
+
+[root@kube-master ~]# kubectl -n  kube-system  get deployment 
+NAME                   DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kube-dns               1         1         1            0           4s
+kubernetes-dashboard   1         1         1            1           1d
+
+[root@kube-master ~]# kubectl -n  kube-system  get service   （DNS服务也有了）
+NAME                              TYPE            CLUSTER-IP       EXTERNAL-IP   PORT(S)            AGE
+kube-dns                         ClusterIP     10.254.254.253   <none>         53/UDP,53/TCP   1m
+kubernetes-dashboard   NodePort    10.254.217.4      <none>          80:30090/TCP      1d
+
+[root@kube-master ~]# kubectl -n kube-system get pod    （DNS3个镜像全部ready状态）
+NAME                                                             READY     STATUS    RESTARTS   AGE
+kube-dns-89d8bb59-kx2dp                             3/3        Running    0                 2m
+kubernetes-dashboard-7f7c59b6b5-xqqph   1/1        Running     0                1d
+
+[root@kube-master ~]# kubectl   apply -f  kube-dashboard.yaml   （滚动更新dashboard,这样所有节点就有dns解析了）
+Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
+deployment.apps "kubernetes-dashboard" configured
+Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
+service "kubernetes-dashboard" configured
+
+[root@kube-master ~]# kubectl  run -r 2 my-apache --image=192.168.1.110:5000/myos:httpd  （启动2个apache应用）
+deployment.apps "my-apache" created
+[root@kube-master ~]# kubectl get deployment 
+NAME        DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+my-apache   2         2         2            2           5s
+
+[root@kube-master ~]# kubectl get pod -o wide     （查看pod状态）
+NAME                        READY     STATUS    RESTARTS   AGE       IP            NODE
+my-apache-d58bbd879-pn5m8   1/1       Running   0          1m        10.254.93.2   kube-node2
+my-apache-d58bbd879-v9bm8   1/1       Running   0          1m        10.254.66.2   kube-node1
+
+想访问服务怎么办？
+[root@kube-master ~]# kubectl expose deployment my-apache  --port=80 --target-port
+=80 --name=apache  创建服务 （--name服务的名字（也是域名） deployment资源类型 my-apache资源名称）
+ 
+[root@kube-master ~]# kubectl get  service   （查询服务状态）
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+apache       ClusterIP   10.254.57.147    <none>        80/TCP    9s
+kubernetes   ClusterIP   10.254.0.1       <none>        443/TCP   5d
+my-httpd     ClusterIP   10.254.163.225   <none>        80/TCP    19h
+
+[root@kube-master ~]# kubectl get  service  （删除之前创建的my-httpd服务）
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+apache       ClusterIP   10.254.57.147   <none>        80/TCP    1m
+kubernetes   ClusterIP   10.254.0.1      <none>        443/TCP   5d
+
+[root@kube-master ~]# kubectl run test -i -t --image=192.168.1.110:5000/myos:latest  （启动容器进行测试）
+If you don't see a command prompt, try pressing enter.
+[root@kube-master ~]# ping apache         因为服务的安全机制ping不通，但是可以解析访问（在容器外不通，你得在平台内启动一个容器）
+ping: apache: Name or service not known
+
+在容器内使用域名访问  curl http://apache   访问OK
+
+[root@test-c487dd5d8-kkxdn /]# exit
+exit
+
+[root@kube-master ~]# kubectl describe pod my-apache-d58bbd879-pn5m8   （查看Pod状态,dns警告消失）
+Name:           my-apache-d58bbd879-pn5m8
+Namespace:      default
+Node:           kube-node2/192.168.1.22
+Start Time:     Wed, 15 Apr 2020 10:35:54 +0800
+Labels:         pod-template-hash=814668435
+                run=my-apache
+Annotations:    <none>
+Status:         Running
+IP:             10.254.93.2
+Controlled By:  ReplicaSet/my-apache-d58bbd879
+Containers:
+  my-apache:
+    Container ID:   docker://409630b150dedc73fb35d395e3a60662cafb2d380f9b3928a5669a2b0dec7f59
+    Image:          192.168.1.110:5000/myos:httpd
+    Image ID:       docker-pullable://192.168.1.110:5000/myos@sha256:25f6c62d1dd50a24beab05c7754b06b0d9f2487e2458e04fcf0982822ac64f08
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Wed, 15 Apr 2020 10:35:55 +0800
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:         <none>
+Conditions:
+  Type           Status
+  Initialized    True 
+  Ready          True 
+  PodScheduled   True 
+Volumes:         <none>
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     <none>
+Events:
+  Type    Reason     Age   From                 Message
+  ----    ------     ----  ----                 -------
+  Normal  Scheduled  23m   default-scheduler    Successfully assigned my-apache-d58bbd879-pn5m8 to kube-node2
+  Normal  Pulled     23m   kubelet, kube-node2  Container image "192.168.1.110:5000/myos:httpd" already present on machine
+  Normal  Created    23m   kubelet, kube-node2  Created container
+  Normal  Started    23m   kubelet, kube-node2  Started container
+
+
+资源对象文件
+.什么事资源对象文件？
+-K8S通过RC/RS管理POD,在RC中定义了如何启动Pod，如何运行，启动几副本等功能，如果我们创建的
+文件，在其中使用yaml的语法格式描述了上面的信息，这个文件就是我们的资源对象文件。
+
+.资源对象文件有什么用？
+-可以创建、删除、管理资源对象
+
+.资源对象从哪里来
+.一般由用户根据需求编写
+ 我们也可以查询一个资源对象文件
+ -格式包含json yaml wide
+   kubectl get 资源对象 资源名称 -o 格式
+
+先创建好yaml文件
+[root@kube-master ~]# vim mytest.yaml 
+---
+apiVersion: extensions/v1beta1           #当前格式的版本
+kind: Deployment                                  #当前创建的资源类型
+metadata:                                               #当前资源的元数据
+  name: testos                                         #当前资源的名字，是元数据必须的项
+spec:                                          #是当前deployment的规格说明
+  replicas: 1                                #当前创建的副本数量，默认值1
+  template:                              #定义Pod的模板
+    metadata:                           #当前pod的元数据
+      labels:                               #至少一个labels标签，可任意创建一个key:value            
+        app: testos                     #标签名
+    spec:                          #当前pod的规格说明
+      containers:              #容器
+      - name: mylinux     #是容器的名字 容器名字是必须填写的
+        image: 192.168.1.110:5000/myos:latest   #镜像地址
+        stdin: true              #交互式输入相当-i参数 
+        tty: true                  #打开终端相当于-t 参数 
+
+
+[root@kube-master ~]# kubectl create  -f  mytest.yaml   （删除用delete）
+deployment.extensions "testos" created
+[root@kube-master ~]# kubectl get  deployment 
+NAME        DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+my-apache   3         3         3            3           1h
+test        1         1         1            1           59m
+testos      1         1         1            1           9s
+[root@kube-master ~]# kubectl get rs
+NAME                  DESIRED   CURRENT   READY     AGE
+my-apache-d58bbd879   3         3         3         1h
+test-c487dd5d8        1         1         1         59m
+testos-b8d4d9b        1         1         1         18s
+[root@kube-master ~]# kubectl get pod
+NAME                        READY     STATUS    RESTARTS   AGE
+my-apache-d58bbd879-pn5m8   1/1       Running   0          1h
+my-apache-d58bbd879-v9bm8   1/1       Running   0          1h
+my-apache-d58bbd879-zdw4r   1/1       Running   0          17m
+test-c487dd5d8-kkxdn        1/1       Running   1          59m
+testos-b8d4d9b-dfhmz        1/1       Running   0          42s
+
+
+
+
+
+
+
+
+
+
+

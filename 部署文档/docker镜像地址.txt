@@ -1,0 +1,34 @@
+[docker]
+name=docker
+baseurl=http://mirrors.myhuaweicloud.com/centos/$releasever/extras/x86_64/
+enabled=1
+gpgcheck=0
+
+(1/28): container-selinux-2.107-1.el7_6.noarch.rpm                                                                                              |  39 kB  00:00:00     
+(2/28): container-storage-setup-0.11.0-2.git5eaf76c.el7.noarch.rpm                                                                              |  35 kB  00:00:00     
+(3/28): PyYAML-3.10-11.el7.x86_64.rpm                                                                                                           | 153 kB  00:00:00     
+(4/28): atomic-registries-1.22.1-26.gitb507039.el7.centos.x86_64.rpm                                                                            |  35 kB  00:00:00     
+(5/28): checkpolicy-2.5-8.el7.x86_64.rpm                                                                                                        | 295 kB  00:00:00     
+(6/28): containers-common-0.1.37-1.el7.centos.x86_64.rpm                                                                                        |  21 kB  00:00:00     
+(7/28): audit-libs-python-2.8.4-4.el7.x86_64.rpm                                                                                                |  76 kB  00:00:00     
+(8/28): docker-client-1.13.1-102.git7f2769b.el7.centos.x86_64.rpm                                                                               | 3.9 MB  00:00:00     
+(9/28): docker-common-1.13.1-102.git7f2769b.el7.centos.x86_64.rpm                                                                               |  97 kB  00:00:00     
+(10/28): libseccomp-2.3.1-3.el7.x86_64.rpm                                                                                                      |  56 kB  00:00:00     
+(11/28): libcgroup-0.41-20.el7.x86_64.rpm                                                                                                       |  66 kB  00:00:00     
+(12/28): libsemanage-python-2.5-14.el7.x86_64.rpm                                                                                               | 113 kB  00:00:00     
+(13/28): libyaml-0.1.4-11.el7_0.x86_64.rpm                                                                                                      |  55 kB  00:00:00     
+(14/28): oci-register-machine-0-6.git2b44233.el7.x86_64.rpm                                                                                     | 1.1 MB  00:00:00     
+(15/28): oci-systemd-hook-0.2.0-1.git05e6923.el7_6.x86_64.rpm                                                                                   |  34 kB  00:00:00     
+(16/28): oci-umount-2.5-1.el7_6.x86_64.rpm                                                                                                      |  33 kB  00:00:00     
+(17/28): python-IPy-0.75-6.el7.noarch.rpm                                                                                                       |  32 kB  00:00:00     
+(18/28): python-backports-ssl_match_hostname-3.5.0.1-1.el7.noarch.rpm                                                                           |  13 kB  00:00:00     
+(19/28): python-backports-1.0-8.el7.x86_64.rpm                                                                                                  | 5.8 kB  00:00:00     
+(20/28): python-pytoml-0.1.14-1.git7dea353.el7.noarch.rpm                                                                                       |  18 kB  00:00:00     
+(21/28): python-ipaddress-1.0.16-2.el7.noarch.rpm                                                                                               |  34 kB  00:00:00     
+(22/28): policycoreutils-python-2.5-29.el7_6.1.x86_64.rpm                                                                                       | 456 kB  00:00:00     
+(23/28): setools-libs-3.3.8-4.el7.x86_64.rpm                                                                                                    | 620 kB  00:00:00     
+(24/28): yajl-2.0.4-4.el7.x86_64.rpm                                                                                                            |  39 kB  00:00:00     
+(25/28): policycoreutils-2.5-29.el7_6.1.x86_64.rpm                                                                                              | 916 kB  00:00:00     
+(26/28): subscription-manager-rhsm-certificates-1.21.10-3.el7.centos.x86_64.rpm                                                                 | 207 kB  00:00:00     
+(27/28): docker-1.13.1-102.git7f2769b.el7.centos.x86_64.rpm                                                                                     |  18 MB  00:00:02     
+(28/28): python-setuptools-0.9.8-7.el7.noarch.rpm                                                                                               | 397 kB  00:00:01    

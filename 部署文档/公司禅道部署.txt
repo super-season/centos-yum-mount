@@ -1,0 +1,46 @@
+# 1.开源版安装包下载
+[root@localhost ~]# cd /opt
+[root@localhost opt]# wget http://dl.cnezsoft.com/zentao/9.0.1/ZenTaoPMS.9.0.1.zbox_64.tar.gz
+
+# 2.解压
+[root@localhost opt]# tar -zxvf ZenTaoPMS.9.0.1.zbox_64.tar.gz -C /opt
+
+# 3.修改端口号
+修改禅道自带apache端口：
+[root@localhost opt]# /opt/zbox/zbox -ap 9001
+修改禅道自带mysql端口：
+[root@localhost opt]# /opt/zbox/zbox -mp 9002
+
+# 4.禅道运行命令
+[root@localhost opt]# /opt/zbox/zbox start   #命令开启Apache和Mysql
+[root@localhost opt]# /opt/zbox/zbox stop    #命令停止Apache和Mysql
+[root@localhost opt]# /opt/zbox/zbox restart #命令重启Apache和Mysql
+[root@localhost opt]# /opt/zbox/zbox  -h     #命令来获取关于zbox命令的帮助
+
+# 5.初始化配置
+# 创建数据库账号
+[root@localhost opt]# /opt/zbox/auth/adduser.sh  
+This tool is used to add user to access admin
+Account: admin
+Password: Adding password for user admin
+#注：mysql数据库的用户名：root，密码为空。应用的数据库管理用的是admin，但是为了安全，访问admin的时候需要身份验证，需要运行脚本添加账户
+
+# 命令行登录禅道自带mysql数据库：
+[root@localhost opt]# /opt/zbox/bin/mysql -u root -P 3306 -p   # 注意端口号不用改为9001
+
+/opt/zbox/bin/mysql -uroot -h127.0.0.1 -P9002 -p123456        #正式环境47.99.91.152登录禅道数据库（mariadb数据库），本身有一个mysql数据库，不加-h127.0.0.1 会自动登录到mysql数据库
+
+
+
+# 命令行导入备份的数据：
+/opt/zbox/bin/mysql -u root -P 3306 -p zentaopro < zentao.sql
+# 如果是首次安装“禅道”，此处略过；如果之前已经装有“禅道”，想导入之前的数据，则可以导入备份的zentao.sql文件
+
+# 6.配置iptables防火墙规则，允许端口访问
+[root@localhost opt]# /sbin/iptables -I INPUT -p tcp --dport 9000 -j ACCEPT
+[root@localhost opt]# /sbin/iptables -I INPUT -p tcp --dport 9001 -j ACCEPT
+
+
+正式环境域名：bug.bdforce.cn(阿里云IP:47.99.91.152)
+账号：admin
+密码：Wislife123

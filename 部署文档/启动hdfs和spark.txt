@@ -1,0 +1,26 @@
+1.启动HDFS
+在201上执行：
+201上有一个进程占用了9000端口：
+lsof -i :9000
+查出进程号，然后kill掉。
+然后，
+start-dfs.sh
+jps查看各台机器上对应进程已经起来：
+201：NameNode、SecondaryNameNode；
+204-207：DataNode
+
+2.启动Yarn
+在201上执行：
+start-yarn.sh
+jps查看各台机器上对应进程已经起来：
+201：ResourceManager；
+204-207：NodeManager；
+
+201主机
+http://192.168.0.201:50070/ //--namenode web页面（namenode1）
+http://192.168.0.201:50090/ //--secondory namenode web页面（namenode1）
+http://192.168.0.201:8088/ //--secondory namenode web页面（namenode1）
+
+http://192.168.0.205:50075/ //--datanode web页面（datanode3,datanode4,datanode5）
+http://192.168.0.205:8042/ //--nodemanager web页面（datanode3,datanode4,datanode5）
+

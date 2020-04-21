@@ -1,0 +1,129 @@
+ 克隆test分支下来，使用特定的用户和密码：git clone -b test http://liuzhaochen:123qqq...A@116.62.118.242/prj/gx_baobiao.git
+
+ 191  git checkout -b produce origin/produce
+  192  git log
+  193  git branch
+  194  git checkout test
+  195  git log
+  196  git checkout produce
+  197  git log
+  198  git branch
+  199  git merge test
+  200  git log
+  201  git reflog
+  202  git tag -a V20190817 -m " 修改数据处理bug" b7ef29a
+  203  git tag
+  204  git show V20190817
+  205  git branch --set-upstream-to=origin/produce produce
+  206  git remote -v
+  207  git remote
+  208  git branch -a
+  209  git remote show origin
+  210  git branch -v
+  211  git branch -vv
+  212  git push
+  213  git push origin --tags
+       git push -u origin newproduct  (把本地分支与远程分支绑定）
+       git push --set-upstream origin newproduct
+       或者在.git/config文件中更改配置也行
+git本地新建一个分支后，必须要做远程分支关联。如果没有关联， git 会在下面的操作中提示你显示的添加关联。关联目的是如果在本地分支下操作： git pull, git push ，不需要指定在命令行指定远程的分支． 推送到远程分支后， 你只要没有显示指定，git pull 的时候，就会提示你。
+
+解决办法是使用命令git branch --set-upstream ;实例如下，其中debug为创建的分支
+
+git branch --set-upstream debug origin/debug
+
+配置本地分支与远程分支的三种方法：
+
+1.检出时建立关联关系：git checkout -b dev origin/dev
+
+当我们检查时，git会自动为我们检出的分支和远程分支建立关联关系；
+
+2.提交时配置关联关系：
+git push -u origin <remote_branch>或git push --set-upstream origin <remote_branch>
+
+
+
+3.更改git/config文件：git branch --set-upstream-to=<remote_branch>
+
+
+
+那么如何查看已经配置分支关联信息呢，通过下述三条命令均可：
+
+git branch -vv
+
+git remote show origin
+
+cat .git/config
+
+关联分支：在git中表现为upstream,无论是使用push -u 或是 git branch --set-upstream-to方法，均会将这种对应关系写入.git/config配置文件，如果一个本地分支没有关联分支，则无法执行 git push 或 git pull指令；
+
+全局配置中，有一个push.default属性，其决定了git push操作的默认行为。
+push.default 有以下几个可选值： nothing, current, upstream, simple, matching
+
+
+nothing: 直接push会出错，需要显式的指出推送的远程分支，例如:git push origin <remote_branch>；
+current: 推送时只会推送当前所在的分支到远程同名分支，如果远程分支不存在相应的同名分支，则创建该分支；
+upstream: 推送当前分支到它的upstream分支上，这个模式只适用于推送到与拉取数据相同的仓库(比如central workflow)；
+simple(默认): simple和upstream是相似的，只有一点不同，simple必须保证本地分支和它的远程 upstream分支同名，否则会拒绝push操作。
+matching:推送本地和远程都存在的同名分支。
+
+
+
+在 Linux 系统中，可以通过查看 /proc/sys/vm/swappiness 内容的值来确定系统对 SWAP 分区的使用原则。当swappiness 内容的值为 0 时，表示最大限度地使用物理内存，物理内存使用完毕后，才会使用 SWAP 分区。当swappiness 内容的值为 100 时，表示积极地使用 SWAP 分区，并且把内存中的数据及时地置换到 SWAP 分区。 默认值为 0，表示需要在物理内存使用完毕后才会使用 SWAP 分区
+
+git目录下.git/config 为该git的配置信息，里面有各种信息
+
+git clone -b test http://liuzhaochen:123qqq...A@116.62.118.242/prj/gx_baobiao.git  //克隆test分支，并附上用户名和密码，以后就不需要输入密码
+
+git pull  //从远程分支中拉取更新最新版本到本地分支,前提是建立了关联联系
+
+git pull origin name2  //指定远程分支name2同步至当前分支
+
+git pull origin name2:name2(远程分支：本地分支)  //同步远程name2分支和本地name2分支，自身可在其它分支如name1上
+
+git push  //把本地git分支上传到远程分支，前提是与远程分支做好关联
+
+git push origin HEAD:master   //本地分支同步到远程master分支，两分支名不一样
+
+git branch  查看分支情况
+
+git branch name1 常见name1分支
+
+git branch -m oldname newname  //把分支名从oldname改为newname
+
+git branch -d name1  删除name1分支
+
+git branch -a 查看所有分支，包括远程分支
+
+git branch -vv 产看本地分支与远程分支的关联情况和版本信息
+
+git remote show origin  //查看本地分支与远程分支的关联情况
+
+git checkout name1  切换到name1分支上
+
+
+
+git checkout -b name2  //创建并切换至分支name2
+
+git checkout -b name2 origin/name2  //创建分支name2，并与远程分支name2关联
+
+git push -u origin name2  //把当前分支与远程分支name2做关联，并提交新版本至远程分支，以后直接用git push就会直接上传到name2分支，关联信息会写入.git/config配置文件中
+
+git push --set-upstream origin name2  //同上
+
+git branch --set-upstream-to=origin/name2(远程分支) name(本地分支)  //把远程分支name2与本地分支name关联，关联信息会写入.git/config配置文件中
+
+git remote add origin name2  //把远程分支name2与本地分支做关联
+
+git add .(点代表所有修改，或者特定文件名)  //把修改放进暂存区
+
+git commit -m "描述信息"  //上传版本，会自动生成新版本号
+
+git merge dev  //把dev分支合并到当前分支，Git合并分支也很快！就改改指针，工作区内容也不变
+
+git merge --no-ff -m "merge with no-ff" dev  //准备合并dev分支，请注意--no-ff参数，表示禁用Fast forward
+
+git status  //查看分支情况或者合并情况
+
+git log --graph  //查看日志，并附带分支之间的合成图
+
