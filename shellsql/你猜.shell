@@ -1,0 +1,14 @@
+#/bin/bash
+a=$[RANDOM%101]
+while [ 1 ] 
+do
+read -p "请输入一个数字(0-100): " s
+if [ $a -eq $s ];then
+ echo "猜对了"
+ exit
+elif [ $s -gt $a ];then
+ echo "猜大了"
+else
+ echo "猜小了"
+fi
+done

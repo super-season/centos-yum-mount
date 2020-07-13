@@ -1,6 +1,0 @@
-#!/bin/bash
-#By Spinestar
-sys_time_h=`date +%M`
-log_time_h=$[ $sys_time_h - 10 ]
-read -p "Please input your log_file_path" log_path
-awk '$4 ~ /'^$log_time_h'/,/'^$sys_time_h'/{print $0}' $log_path
